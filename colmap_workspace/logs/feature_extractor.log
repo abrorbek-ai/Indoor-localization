@@ -1,0 +1,166 @@
+I20260409 11:30:33.153108 0x16daef000 feature_extraction.cc:506] === Feature extraction ===
+I20260409 11:30:33.153654 0x16ddab000 sift.cc:763] Creating SIFT CPU feature extractor
+I20260409 11:30:33.153709 0x16dec3000 sift.cc:763] Creating SIFT CPU feature extractor
+I20260409 11:30:33.153665 0x16de37000 sift.cc:763] Creating SIFT CPU feature extractor
+I20260409 11:30:33.153677 0x16df4f000 sift.cc:763] Creating SIFT CPU feature extractor
+I20260409 11:30:41.204146 0x16dfdb000 feature_extraction.cc:284] Processed file [1/20]
+I20260409 11:30:41.204502 0x16dfdb000 feature_extraction.cc:287]   Name:            img_02_front.jpg
+I20260409 11:30:41.204668 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:30:41.204812 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:30:41.204959 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:30:41.205139 0x16dfdb000 feature_extraction.cc:306]   Features:        9381 (SIFT)
+I20260409 11:30:41.260056 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:30:41.260414 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:30:41.307878 0x16dfdb000 feature_extraction.cc:284] Processed file [2/20]
+I20260409 11:30:41.308285 0x16dfdb000 feature_extraction.cc:287]   Name:            img_01_left.jpg
+I20260409 11:30:41.308510 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:30:41.308657 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:30:41.308734 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:30:41.308800 0x16dfdb000 feature_extraction.cc:306]   Features:        13242 (SIFT)
+I20260409 11:30:41.374757 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:30:41.375140 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:30:41.521387 0x16dfdb000 feature_extraction.cc:284] Processed file [3/20]
+I20260409 11:30:41.521736 0x16dfdb000 feature_extraction.cc:287]   Name:            img_01_right.jpg
+I20260409 11:30:41.521909 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:30:41.522054 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:30:41.522189 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:30:41.522334 0x16dfdb000 feature_extraction.cc:306]   Features:        14520 (SIFT)
+I20260409 11:30:41.638201 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:30:41.639407 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:30:41.670105 0x16dfdb000 feature_extraction.cc:284] Processed file [4/20]
+I20260409 11:30:41.670448 0x16dfdb000 feature_extraction.cc:287]   Name:            img_01_front.jpg
+I20260409 11:30:41.670619 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:30:41.670769 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:30:41.670906 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:30:41.671042 0x16dfdb000 feature_extraction.cc:306]   Features:        17747 (SIFT)
+I20260409 11:30:41.756920 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:30:41.757100 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:30:46.365419 0x16dfdb000 feature_extraction.cc:284] Processed file [5/20]
+I20260409 11:30:46.365619 0x16dfdb000 feature_extraction.cc:287]   Name:            img_03_front.jpg
+I20260409 11:30:46.365705 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:30:46.365784 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:30:46.365847 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:30:46.366670 0x16dfdb000 feature_extraction.cc:306]   Features:        11306 (SIFT)
+I20260409 11:30:46.439382 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:30:46.439740 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:30:46.759018 0x16dfdb000 feature_extraction.cc:284] Processed file [6/20]
+I20260409 11:30:46.759371 0x16dfdb000 feature_extraction.cc:287]   Name:            img_05_front.jpg
+I20260409 11:30:46.759545 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:30:46.759689 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:30:46.759828 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:30:46.759967 0x16dfdb000 feature_extraction.cc:306]   Features:        10896 (SIFT)
+I20260409 11:30:46.839604 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:30:46.839782 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:30:46.873847 0x16dfdb000 feature_extraction.cc:284] Processed file [7/20]
+I20260409 11:30:46.874183 0x16dfdb000 feature_extraction.cc:287]   Name:            img_06_front.jpg
+I20260409 11:30:46.874363 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:30:46.874507 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:30:46.874641 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:30:46.874776 0x16dfdb000 feature_extraction.cc:306]   Features:        12031 (SIFT)
+I20260409 11:30:46.960703 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:30:46.961067 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:30:49.002847 0x16dfdb000 feature_extraction.cc:284] Processed file [8/20]
+I20260409 11:30:49.003212 0x16dfdb000 feature_extraction.cc:287]   Name:            img_04_front.jpg
+I20260409 11:30:49.003383 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:30:49.003519 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:30:49.003650 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:30:49.003782 0x16dfdb000 feature_extraction.cc:306]   Features:        40615 (SIFT)
+I20260409 11:30:49.121752 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:30:49.122090 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:30:51.075970 0x16dfdb000 feature_extraction.cc:284] Processed file [9/20]
+I20260409 11:30:51.076265 0x16dfdb000 feature_extraction.cc:287]   Name:            img_07_right.jpg
+I20260409 11:30:51.076420 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:30:51.076555 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:30:51.076690 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:30:51.076827 0x16dfdb000 feature_extraction.cc:306]   Features:        7401 (SIFT)
+I20260409 11:30:51.167209 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:30:51.167387 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:30:51.431398 0x16dfdb000 feature_extraction.cc:284] Processed file [10/20]
+I20260409 11:30:51.433949 0x16dfdb000 feature_extraction.cc:287]   Name:            img_07_left.jpg
+I20260409 11:30:51.434321 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:30:51.434483 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:30:51.434629 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:30:51.434830 0x16dfdb000 feature_extraction.cc:306]   Features:        16241 (SIFT)
+I20260409 11:30:51.436103 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:30:51.436264 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:30:51.996100 0x16dfdb000 feature_extraction.cc:284] Processed file [11/20]
+I20260409 11:30:51.996456 0x16dfdb000 feature_extraction.cc:287]   Name:            img_07_front.jpg
+I20260409 11:30:51.996619 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:30:51.996765 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:30:51.996898 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:30:51.997050 0x16dfdb000 feature_extraction.cc:306]   Features:        9918 (SIFT)
+I20260409 11:30:51.997257 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:30:51.997335 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:30:55.347872 0x16dfdb000 feature_extraction.cc:284] Processed file [12/20]
+I20260409 11:30:55.348055 0x16dfdb000 feature_extraction.cc:287]   Name:            img_08_front.jpg
+I20260409 11:30:55.348136 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:30:55.348200 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:30:55.348262 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:30:55.348438 0x16dfdb000 feature_extraction.cc:306]   Features:        21123 (SIFT)
+I20260409 11:30:55.348530 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:30:55.348592 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:30:55.851404 0x16dfdb000 feature_extraction.cc:284] Processed file [13/20]
+I20260409 11:30:55.851602 0x16dfdb000 feature_extraction.cc:287]   Name:            img_10_front.jpg
+I20260409 11:30:55.851676 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:30:55.851740 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:30:55.851804 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:30:55.851870 0x16dfdb000 feature_extraction.cc:306]   Features:        11466 (SIFT)
+I20260409 11:30:55.851979 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:30:55.852121 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:30:57.056406 0x16dfdb000 feature_extraction.cc:284] Processed file [14/20]
+I20260409 11:30:57.056807 0x16dfdb000 feature_extraction.cc:287]   Name:            img_09_front.jpg
+I20260409 11:30:57.056918 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:30:57.056989 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:30:57.057053 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:30:57.057118 0x16dfdb000 feature_extraction.cc:306]   Features:        21143 (SIFT)
+I20260409 11:30:57.057218 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:30:57.057436 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:30:57.203958 0x16dfdb000 feature_extraction.cc:284] Processed file [15/20]
+I20260409 11:30:57.204296 0x16dfdb000 feature_extraction.cc:287]   Name:            img_11_front.jpg
+I20260409 11:30:57.204480 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:30:57.204684 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:30:57.204889 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:30:57.205092 0x16dfdb000 feature_extraction.cc:306]   Features:        12744 (SIFT)
+I20260409 11:30:57.206112 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:30:57.206258 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:31:00.313750 0x16dfdb000 feature_extraction.cc:284] Processed file [16/20]
+I20260409 11:31:00.313937 0x16dfdb000 feature_extraction.cc:287]   Name:            img_12_front.jpg
+I20260409 11:31:00.314009 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:31:00.314073 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:31:00.314138 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:31:00.314203 0x16dfdb000 feature_extraction.cc:306]   Features:        23160 (SIFT)
+I20260409 11:31:00.314305 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:31:00.314421 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:31:00.466115 0x16dfdb000 feature_extraction.cc:284] Processed file [17/20]
+I20260409 11:31:00.466410 0x16dfdb000 feature_extraction.cc:287]   Name:            img_12_left.jpg
+I20260409 11:31:00.466493 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:31:00.466615 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:31:00.466996 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:31:00.467263 0x16dfdb000 feature_extraction.cc:306]   Features:        19561 (SIFT)
+I20260409 11:31:00.467402 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:31:00.467659 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:31:01.516089 0x16dfdb000 feature_extraction.cc:284] Processed file [18/20]
+I20260409 11:31:01.516337 0x16dfdb000 feature_extraction.cc:287]   Name:            img_12_right.jpg
+I20260409 11:31:01.516416 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:31:01.516483 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:31:01.516551 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:31:01.516615 0x16dfdb000 feature_extraction.cc:306]   Features:        14927 (SIFT)
+I20260409 11:31:01.516725 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:31:01.516793 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:31:02.108749 0x16dfdb000 feature_extraction.cc:284] Processed file [19/20]
+I20260409 11:31:02.108985 0x16dfdb000 feature_extraction.cc:287]   Name:            img_13_front.jpg
+I20260409 11:31:02.109348 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:31:02.109543 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:31:02.109647 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:31:02.109722 0x16dfdb000 feature_extraction.cc:306]   Features:        22661 (SIFT)
+I20260409 11:31:02.109839 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:31:02.109912 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:31:04.425080 0x16dfdb000 feature_extraction.cc:284] Processed file [20/20]
+I20260409 11:31:04.425274 0x16dfdb000 feature_extraction.cc:287]   Name:            img_14_front.jpg
+I20260409 11:31:04.425351 0x16dfdb000 feature_extraction.cc:296]   Dimensions:      4032 x 3024
+I20260409 11:31:04.425429 0x16dfdb000 feature_extraction.cc:299]   Camera:          #1 - SIMPLE_RADIAL
+I20260409 11:31:04.425498 0x16dfdb000 feature_extraction.cc:302]   Focal Length:    2795.47px (Prior)
+I20260409 11:31:04.425566 0x16dfdb000 feature_extraction.cc:306]   Features:        14769 (SIFT)
+I20260409 11:31:04.425760 0x16dfdb000 feature_extraction.cc:320]   GPS:             LAT=37.631, LON=127.080, ALT=70.540
+I20260409 11:31:04.425879 0x16dfdb000 feature_extraction.cc:327]   Gravity:         X=1.000, Y=0.000, Z=0.000
+I20260409 11:31:04.428144 0x16daef000 timer.cc:90] Elapsed time: 0.521 [minutes]

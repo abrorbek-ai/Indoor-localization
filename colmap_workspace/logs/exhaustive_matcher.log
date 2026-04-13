@@ -1,0 +1,25 @@
+I20260409 11:31:04.963782 0x16f107000 feature_matching.cc:195] === Feature matching & geometric verification ===
+I20260409 11:31:04.965193 0x16f193000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.965195 0x16f21f000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.965205 0x16f2ab000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.965278 0x16ffcb000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.965250 0x16fd0f000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.965288 0x1700e3000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.965246 0x16fc83000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.965257 0x16fd9b000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.965274 0x16ff3f000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.965262 0x16fe27000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.965281 0x170057000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.965232 0x16f567000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.965237 0x16f5f3000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.965291 0x17016f000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.965218 0x16f44f000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.965242 0x16f67f000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.965226 0x16f4db000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.965209 0x16f337000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.965216 0x16f3c3000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.965265 0x16feb3000 sift.cc:1565] Creating SIFT CPU feature matcher
+I20260409 11:31:04.967178 0x16f107000 pairing.cc:180] Generating exhaustive image pairs...
+I20260409 11:31:04.967256 0x16f107000 pairing.cc:213] Processing block [1/1, 1/1]
+I20260409 11:47:45.493952 0x16f107000 feature_matching.cc:217] in 1000.516s
+I20260409 11:47:45.499007 0x16f107000 timer.cc:90] Elapsed time: 16.675 [minutes]
