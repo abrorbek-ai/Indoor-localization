@@ -1,4 +1,3 @@
-# Indoor-localization
 # Indoor Localization MVP
 
 <p align="left">
