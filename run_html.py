@@ -264,7 +264,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--serve", action="store_true", help="Start the local HTTP server.")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--ref-dir", default="ref_images", help="Reference image directory.")
+    parser.add_argument("--coords", default=None, help="coords.txt path. If omitted, ARKit pose or filename fallback is used.")
+    parser.add_argument("--model-dir", default="colmap_workspace/sparse/0", help="COLMAP sparse model directory.")
+    parser.add_argument("--database", default="colmap_workspace/database.db", help="COLMAP database.db path.")
     parser.add_argument("--no-pnp", action="store_true", help="Disable optional PnP.")
+    parser.add_argument("--no-photo-norm", action="store_true", help="Disable CLAHE/gamma photometric normalization.")
     return parser.parse_args()
 
 
@@ -277,12 +282,17 @@ def main() -> None:
     ensure_dirs()
     config = PipelineConfig(
         project_dir=PROJECT_DIR,
+        ref_dir=(PROJECT_DIR / args.ref_dir).resolve(),
+        coords_path=(Path(args.coords).resolve() if args.coords else None),
+        model_dir=(PROJECT_DIR / args.model_dir).resolve(),
+        database_path=(PROJECT_DIR / args.database).resolve(),
         pnp_enabled=not args.no_pnp,
         output_summary=SUMMARY_PATH,
         output_match_png=MATCH_PNG,
         output_pose_png=POSE_PNG,
         output_pnp_inliers_png=PNP_INLIERS_PNG,
         output_html=HTML_REPORT,
+        use_photometric_normalization=not args.no_photo_norm,
     ).resolved()
     context = load_localization_context(config, verbose=True)
     server, actual_port = bind_server_with_fallback(args.host, args.port, context)

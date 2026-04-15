@@ -51,6 +51,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model-dir", default="colmap_workspace/sparse/0", help="COLMAP sparse model directory.")
     parser.add_argument("--database", default="colmap_workspace/database.db", help="COLMAP database.db path.")
     parser.add_argument("--no-pnp", action="store_true", help="Disable optional PnP and always return reference fallback.")
+    parser.add_argument("--no-photo-norm", action="store_true", help="Disable CLAHE/gamma photometric normalization.")
     return parser.parse_args()
 
 
@@ -67,6 +68,7 @@ def main() -> None:
         model_dir=(project_dir / args.model_dir).resolve(),
         database_path=(project_dir / args.database).resolve(),
         pnp_enabled=not args.no_pnp,
+        use_photometric_normalization=not args.no_photo_norm,
     ).resolved()
 
     print(f"Query image: {query_path}")
@@ -80,10 +82,12 @@ def main() -> None:
         pose_png=config.output_pose_png,
         pnp_inliers_png=config.output_pnp_inliers_png,
         html_path=config.output_html,
+        line_viz_png=config.output_line_viz_png,
     )
 
     print("\nOutputs written:")
     print(f"  summary: {config.output_summary}")
+    print(f"  line visualization: {config.output_line_viz_png}")
     print(f"  match visualization: {config.output_match_png}")
     print(f"  logical pose plot: {config.output_pose_png}")
     print(f"  pnp inlier visualization: {config.output_pnp_inliers_png}")

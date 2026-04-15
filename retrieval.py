@@ -13,8 +13,10 @@ from io_colmap import ReferenceFeatures, ReferenceMeta, natural_sort_key
 
 @dataclass
 class RankingConfig:
-    large_dataset_threshold: int = 100
-    global_top_k: int = 200
+    # Line-based shortlist: always applied (threshold=0 means always use shortlist)
+    large_dataset_threshold: int = 0
+    # How many candidates from line similarity shortlist go through SIFT
+    global_top_k: int = 30
     lowe_ratio: float = 0.78
     mutual_check: bool = False
     fundamental_ransac_threshold: float = 3.0
@@ -23,6 +25,9 @@ class RankingConfig:
     min_verified_inliers: int = 8
     min_coverage_ratio: float = 2.0 / 9.0
     min_balance: float = 0.10
+    balance_override_min_coverage: float = 7.0 / 9.0
+    balance_override_min_occupied_cells: int = 5
+    balance_override_inlier_multiplier: float = 3.0
     min_global_similarity: Optional[float] = None
     use_region_voting: bool = True
     region_grid: tuple[int, int] = (3, 3)
@@ -42,13 +47,17 @@ class RankingConfig:
             "balance": 0.20,
         }
     )
+    # Line similarity (global_similarity) is the primary signal.
+    # SIFT-based metrics (verified_inliers, inlier_ratio, coverage, balance)
+    # serve as secondary verification only.
     score_weights: Dict[str, float] = field(
         default_factory=lambda: {
-            "verified_inliers": 0.35,
-            "inlier_ratio": 0.25,
-            "coverage": 0.20,
-            "balance": 0.10,
-            "global_similarity": 0.10,
+            "verified_inliers":      0.24,
+            "inlier_ratio":          0.16,
+            "coverage":              0.16,
+            "balance":               0.05,
+            "global_similarity":     0.10,
+            "structural_similarity": 0.29,
         }
     )
 
@@ -70,9 +79,12 @@ class CandidateResult:
     balance: float = 0.0
     dispersion: float = 0.0
     global_similarity: Optional[float] = None
+    structural_similarity: float = 0.0
     score: float = 0.0
     primary_score: float = 0.0
     region_vote_score: float = 0.0
+    line_breakdown: Dict[str, float] = field(default_factory=dict)
+    score_breakdown: Dict[str, float] = field(default_factory=dict)
     accepted: bool = False
     reject_reasons: List[str] = field(default_factory=list)
     geometry_method: str = "none"
@@ -105,9 +117,12 @@ class CandidateResult:
             "balance": self.balance,
             "dispersion": self.dispersion,
             "global_similarity": self.global_similarity,
+            "structural_similarity": self.structural_similarity,
             "score": self.score,
             "primary_score": self.primary_score,
             "region_vote_score": self.region_vote_score,
+            "line_breakdown": dict(self.line_breakdown),
+            "score_breakdown": dict(self.score_breakdown),
             "accepted": self.accepted,
             "reject_reasons": list(self.reject_reasons),
             "geometry_method": self.geometry_method,
@@ -126,6 +141,12 @@ def select_candidate_names(
     global_scores: Optional[Dict[str, float]],
     config: RankingConfig,
 ) -> tuple[List[str], bool]:
+    """Return candidate names sorted by line similarity, limited to global_top_k.
+
+    With line-based retrieval, the shortlist is always applied when scores are
+    available (large_dataset_threshold=0), so SIFT is only run on the top-K
+    most structurally similar references.
+    """
     names = sorted(reference_names, key=natural_sort_key)
     use_global = bool(global_scores) and len(names) > config.large_dataset_threshold
     if not use_global:
@@ -142,6 +163,7 @@ def evaluate_candidate(
     query_features: ImageFeatures,
     global_similarity: Optional[float],
     config: RankingConfig,
+    structural_similarity: float = 0.0,
 ) -> CandidateResult:
     match = match_and_verify(
         query_features,
@@ -174,6 +196,7 @@ def evaluate_candidate(
         balance=coverage.balance,
         dispersion=coverage.dispersion,
         global_similarity=global_similarity,
+        structural_similarity=float(structural_similarity),
         geometry_method=match.geometry_method,
         invalid_geometry=match.invalid_geometry,
         good_match_objects=list(match.good_matches),
@@ -188,7 +211,12 @@ def evaluate_candidate(
         candidate.reject_reasons.append("too_few_geometric_inliers")
     if candidate.coverage_ratio < config.min_coverage_ratio:
         candidate.reject_reasons.append("poor_coverage")
-    if candidate.balance < config.min_balance:
+    allow_balance_override = (
+        candidate.coverage_ratio >= config.balance_override_min_coverage
+        and candidate.occupied_cells >= config.balance_override_min_occupied_cells
+        and candidate.verified_inliers >= int(round(config.min_verified_inliers * config.balance_override_inlier_multiplier))
+    )
+    if candidate.balance < config.min_balance and not allow_balance_override:
         candidate.reject_reasons.append("poor_balance")
     if (
         config.min_global_similarity is not None
@@ -222,11 +250,21 @@ def score_candidates(candidates: List[CandidateResult], use_global: bool, config
         return
 
     norm_verified = _normalize(c.verified_inliers for c in candidates)
-    norm_global = _normalize((c.global_similarity or 0.0) for c in candidates) if use_global else [0.0] * len(candidates)
+    # Line similarity (global_similarity) is always used when available — it is the primary signal.
+    has_line_scores = any(c.global_similarity is not None for c in candidates)
+    norm_global = _normalize((c.global_similarity or 0.0) for c in candidates) if has_line_scores else [0.0] * len(candidates)
+    # Structural similarity (zone + pillar) — second-stage discrimination signal.
+    has_structural = any(c.structural_similarity != 0.0 for c in candidates)
+    norm_structural = (
+        _normalize(c.structural_similarity for c in candidates)
+        if has_structural else [0.0] * len(candidates)
+    )
 
     weights = dict(config.score_weights)
-    if not use_global:
+    if not has_line_scores:
         weights.pop("global_similarity", None)
+    if not has_structural:
+        weights.pop("structural_similarity", None)
     total_weight = sum(weights.values()) or 1.0
     weights = {key: value / total_weight for key, value in weights.items()}
 
@@ -237,7 +275,17 @@ def score_candidates(candidates: List[CandidateResult], use_global: bool, config
             + weights.get("coverage", 0.0) * float(np.clip(candidate.coverage_ratio, 0.0, 1.0))
             + weights.get("balance", 0.0) * float(np.clip(candidate.balance, 0.0, 1.0))
             + weights.get("global_similarity", 0.0) * norm_global[idx]
+            + weights.get("structural_similarity", 0.0) * norm_structural[idx]
         )
+        candidate.score_breakdown = {
+            "verified_inliers_norm": float(norm_verified[idx]),
+            "inlier_ratio": float(np.clip(candidate.inlier_ratio, 0.0, 1.0)),
+            "coverage": float(np.clip(candidate.coverage_ratio, 0.0, 1.0)),
+            "balance": float(np.clip(candidate.balance, 0.0, 1.0)),
+            "line_similarity_norm": float(norm_global[idx]),
+            "structural_similarity_norm": float(norm_structural[idx]),
+            "weighted_primary_score": float(candidate.primary_score),
+        }
         candidate.score = candidate.primary_score
 
 

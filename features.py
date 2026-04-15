@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, List, Optional, Sequence, Tuple
 
@@ -73,6 +73,44 @@ def load_image_gray(path: Path, max_side: int = 0) -> Tuple[np.ndarray, Tuple[in
     return gray, original_shape, 1.0
 
 
+def photometric_normalize_gray(gray: np.ndarray) -> np.ndarray:
+    """Make local contrast more stable under slightly darker/brighter captures."""
+    if gray is None or gray.size == 0:
+        return gray
+    if gray.dtype != np.uint8:
+        gray = np.clip(gray, 0, 255).astype(np.uint8)
+
+    clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8))
+    norm = clahe.apply(gray)
+
+    mean_intensity = float(np.mean(norm))
+    if mean_intensity > 1e-6:
+        gamma = np.clip(np.log(140.0 / 255.0) / np.log(mean_intensity / 255.0), 0.75, 1.35)
+        table = np.array(
+            [((idx / 255.0) ** gamma) * 255.0 for idx in range(256)],
+            dtype=np.float32,
+        )
+        norm = cv2.LUT(norm, np.clip(table, 0, 255).astype(np.uint8))
+
+    return norm
+
+
+def load_image_bgr(path: Path) -> np.ndarray:
+    bgr = cv2.imread(str(path), cv2.IMREAD_COLOR)
+    if bgr is None:
+        raise FileNotFoundError(f"Image could not be read: {path}")
+    return bgr
+
+
+def photometric_normalize_bgr(bgr: np.ndarray) -> np.ndarray:
+    if bgr is None or bgr.size == 0:
+        return bgr
+    lab = cv2.cvtColor(bgr, cv2.COLOR_BGR2LAB)
+    l_chan, a_chan, b_chan = cv2.split(lab)
+    l_norm = photometric_normalize_gray(l_chan)
+    return cv2.cvtColor(cv2.merge([l_norm, a_chan, b_chan]), cv2.COLOR_LAB2BGR)
+
+
 def _extract_sift_from_gray(gray: np.ndarray, nfeatures: int, offset_xy=(0.0, 0.0), scale_to_original: float = 1.0) -> tuple[np.ndarray, np.ndarray]:
     if gray is None or gray.size == 0:
         return np.zeros((0, 2), dtype=np.float32), np.zeros((0, 128), dtype=np.float32)
@@ -89,9 +127,16 @@ def _extract_sift_from_gray(gray: np.ndarray, nfeatures: int, offset_xy=(0.0, 0.
     return xy, desc
 
 
-def extract_sift_features(path: Path, nfeatures: int = 6000, max_side: int = 0) -> ImageFeatures:
+def extract_sift_features(
+    path: Path,
+    nfeatures: int = 6000,
+    max_side: int = 0,
+    photometric_normalization: bool = False,
+) -> ImageFeatures:
     """Extract SIFT on the whole image and convert descriptors to RootSIFT*255."""
     gray, original_shape, scale_to_original = load_image_gray(path, max_side=max_side)
+    if photometric_normalization:
+        gray = photometric_normalize_gray(gray)
     xy, desc = _extract_sift_from_gray(gray, nfeatures=nfeatures, offset_xy=(0.0, 0.0), scale_to_original=scale_to_original)
     return ImageFeatures(xy, desc, original_shape, scale_to_original)
 
@@ -102,8 +147,11 @@ def extract_query_region_features(
     grid: Tuple[int, int] = (3, 3),
     nfeatures_per_region: int = 1200,
     max_side: int = 0,
+    photometric_normalization: bool = False,
 ) -> List[QueryRegionFeatures]:
     gray, original_shape, scale_to_original = load_image_gray(path, max_side=max_side)
+    if photometric_normalization:
+        gray = photometric_normalize_gray(gray)
     h, w = gray.shape[:2]
     rows, cols = grid
     cell_h = max(1, h // rows)
@@ -326,10 +374,13 @@ def compute_spatial_coverage(
     )
 
 
-def global_descriptor_from_bgr(bgr: np.ndarray) -> np.ndarray:
+def global_descriptor_from_bgr(bgr: np.ndarray, photometric_normalization: bool = False) -> np.ndarray:
     """Simple deterministic descriptor for large reference sets."""
     if bgr is None or bgr.size == 0:
         return np.zeros((1,), dtype=np.float32)
+
+    if photometric_normalization:
+        bgr = photometric_normalize_bgr(bgr)
 
     gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
     small = cv2.resize(gray, (64, 64), interpolation=cv2.INTER_AREA).astype(np.float32) / 255.0
@@ -338,9 +389,11 @@ def global_descriptor_from_bgr(bgr: np.ndarray) -> np.ndarray:
     mag, angle = cv2.cartToPolar(gx, gy, angleInDegrees=True)
     grad_hist = np.histogram(angle, bins=16, range=(0, 360), weights=mag)[0].astype(np.float32)
 
-    hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
-    hsv_hist = cv2.calcHist([hsv], [0, 1, 2], None, [12, 4, 4], [0, 180, 0, 256, 0, 256]).flatten()
-    hsv_hist = hsv_hist.astype(np.float32)
+    hsv_hist = np.zeros((0,), dtype=np.float32)
+    if not photometric_normalization:
+        hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
+        hsv_hist = cv2.calcHist([hsv], [0, 1, 2], None, [12, 4, 4], [0, 180, 0, 256, 0, 256]).flatten()
+        hsv_hist = hsv_hist.astype(np.float32)
 
     grid_stats = []
     for row in range(4):
@@ -353,11 +406,269 @@ def global_descriptor_from_bgr(bgr: np.ndarray) -> np.ndarray:
     return (vec / norm).astype(np.float32)
 
 
-def global_descriptor_from_path(path: Path) -> np.ndarray:
+def global_descriptor_from_path(path: Path, photometric_normalization: bool = False) -> np.ndarray:
     bgr = cv2.imread(str(path), cv2.IMREAD_COLOR)
     if bgr is None:
         return np.zeros((1,), dtype=np.float32)
-    return global_descriptor_from_bgr(bgr)
+    return global_descriptor_from_bgr(bgr, photometric_normalization=photometric_normalization)
+
+
+# ---------------------------------------------------------------------------
+# Line-based structural features (primary localization signal)
+# ---------------------------------------------------------------------------
+
+@dataclass
+class LineFeatures:
+    """Structural line features extracted via Canny + HoughLinesP."""
+    lines: np.ndarray           # (N, 4): x1, y1, x2, y2 in original pixel coords
+    orientation_hist: np.ndarray  # 16 bins [0°,90°], length-weighted, L1-normalized
+    spatial_hist: np.ndarray      # 16 cells (4x4 grid), length-weighted, L1-normalized
+    vertical_count: int           # lines with angle > 70°
+    horizontal_count: int         # lines with angle < 20°
+    diagonal_count: int           # lines with 20° ≤ angle ≤ 70°
+    total_length: float
+    image_shape: Tuple[int, int]  # (h, w) original
+    zone_hists: np.ndarray = field(
+        default_factory=lambda: np.zeros((3, 16), dtype=np.float32)
+    )  # Per-zone orientation histograms within ROI. Shape (3, 16).
+       # Zone 0 = ceiling (top 0–33% of ROI), Zone 1 = boundary (33–67%), Zone 2 = upper wall (67–100%)
+    vertical_density: np.ndarray = field(
+        default_factory=lambda: np.zeros(8, dtype=np.float32)
+    )  # 8-bin horizontal distribution of near-vertical lines (angle > 65°) = pillar positions
+    parallel_profile: np.ndarray = field(
+        default_factory=lambda: np.zeros(4, dtype=np.float32)
+    )  # concentration of dominant orientation families, independent of line count
+    perspective_density: np.ndarray = field(
+        default_factory=lambda: np.zeros(8, dtype=np.float32)
+    )  # where corridor-direction lines reach the ROI base
+    roi_bottom_y: int = 0
+    zone_bounds_y: np.ndarray = field(
+        default_factory=lambda: np.zeros(4, dtype=np.int32)
+    )
+
+
+def extract_line_features(
+    path: Path,
+    canny_low: int = 50,
+    canny_high: int = 150,
+    hough_threshold: int = 30,
+    hough_min_line_len: int = 30,
+    hough_max_gap: int = 10,
+    max_side: int = 800,
+    normalize: bool = True,
+    roi_top_fraction: float = 0.62,
+) -> LineFeatures:
+    """Extract structural line features from an image.
+
+    Returns orientation histogram, spatial distribution, and orientation
+    counts — all invariant to color and robust to lighting changes.
+    """
+    gray, original_shape, scale_to_original = load_image_gray(path, max_side=max_side)
+    h_orig, w_orig = original_shape
+
+    if normalize:
+        gray = photometric_normalize_gray(gray)
+
+    # Apply ROI mask: blank out bottom portion (floor, bicycles, clutter)
+    h_gray, w_gray = gray.shape[:2]
+    roi_h = max(1, int(round(h_gray * roi_top_fraction)))
+    masked = gray.copy()
+    masked[roi_h:, :] = 0  # zero below ROI; Canny finds nothing there
+    blurred = cv2.GaussianBlur(masked, (5, 5), 0)
+    edges = cv2.Canny(blurred, canny_low, canny_high)
+
+    raw_lines = cv2.HoughLinesP(
+        edges,
+        rho=1,
+        theta=np.pi / 180,
+        threshold=hough_threshold,
+        minLineLength=hough_min_line_len,
+        maxLineGap=hough_max_gap,
+    )
+
+    _empty = LineFeatures(
+        lines=np.zeros((0, 4), dtype=np.float32),
+        orientation_hist=np.zeros(16, dtype=np.float32),
+        spatial_hist=np.zeros(16, dtype=np.float32),
+        vertical_count=0,
+        horizontal_count=0,
+        diagonal_count=0,
+        total_length=0.0,
+        image_shape=original_shape,
+        zone_hists=np.zeros((3, 16), dtype=np.float32),
+        vertical_density=np.zeros(8, dtype=np.float32),
+        parallel_profile=np.zeros(4, dtype=np.float32),
+        perspective_density=np.zeros(8, dtype=np.float32),
+        roi_bottom_y=0,
+        zone_bounds_y=np.zeros(4, dtype=np.int32),
+    )
+    if raw_lines is None:
+        return _empty
+
+    lines = raw_lines.reshape(-1, 4).astype(np.float32) * float(scale_to_original)
+    dx = lines[:, 2] - lines[:, 0]
+    dy = lines[:, 3] - lines[:, 1]
+    # angle=0 → horizontal, angle=90 → vertical
+    angles = np.degrees(np.arctan2(np.abs(dy), np.abs(dx) + 1e-9))
+    lengths = np.sqrt(dx**2 + dy**2)
+    total_length = float(np.sum(lengths))
+    if total_length < 1e-6:
+        return _empty
+
+    # Orientation histogram: 16 bins over [0°, 90°], weighted by line length
+    orientation_hist, _ = np.histogram(angles, bins=16, range=(0.0, 90.0), weights=lengths)
+    orientation_hist = orientation_hist.astype(np.float32)
+    orientation_hist /= float(np.sum(orientation_hist)) + 1e-12
+
+    vertical_count = int(np.sum(angles > 70.0))
+    horizontal_count = int(np.sum(angles < 20.0))
+    diagonal_count = int(np.sum((angles >= 20.0) & (angles <= 70.0)))
+
+    # Spatial histogram: 4×4 grid of image, weighted by line length
+    midx = (lines[:, 0] + lines[:, 2]) * 0.5
+    midy = (lines[:, 1] + lines[:, 3]) * 0.5
+    spatial_hist = np.zeros(16, dtype=np.float32)
+    for mx, my, ln in zip(midx.tolist(), midy.tolist(), lengths.tolist()):
+        c = min(3, max(0, int(float(mx) / float(w_orig) * 4)))
+        r = min(3, max(0, int(float(my) / float(h_orig) * 4)))
+        spatial_hist[r * 4 + c] += float(ln)
+    spatial_hist /= float(np.sum(spatial_hist)) + 1e-12
+
+    # Zone histograms: 3 horizontal bands within the ROI (original pixel space)
+    roi_h_orig = int(round(h_orig * roi_top_fraction))
+    zone_bounds = [0, roi_h_orig // 3, 2 * roi_h_orig // 3, roi_h_orig]
+    zone_hists = np.zeros((3, 16), dtype=np.float32)
+    for z in range(3):
+        zmask = (midy >= zone_bounds[z]) & (midy < zone_bounds[z + 1])
+        if np.any(zmask):
+            zh, _ = np.histogram(angles[zmask], bins=16, range=(0.0, 90.0), weights=lengths[zmask])
+            zh = zh.astype(np.float32)
+            denom = float(np.sum(zh))
+            if denom > 1e-12:
+                zh /= denom
+            zone_hists[z] = zh
+
+    # Vertical density profile: 8-bin horizontal distribution of near-vertical lines (pillars)
+    vert_mask = angles > 65.0
+    vertical_density = np.zeros(8, dtype=np.float32)
+    if np.any(vert_mask):
+        for mx, ln in zip(midx[vert_mask].tolist(), lengths[vert_mask].tolist()):
+            b = min(7, max(0, int(float(mx) / float(w_orig) * 8)))
+            vertical_density[b] += float(ln)
+        denom = float(np.sum(vertical_density))
+        if denom > 1e-12:
+            vertical_density /= denom
+
+    parallel_profile = np.sort(orientation_hist.astype(np.float32))[-4:][::-1]
+    parallel_profile /= float(np.sum(parallel_profile)) + 1e-12
+
+    perspective_density = np.zeros(8, dtype=np.float32)
+    diag_mask = (angles >= 20.0) & (angles <= 80.0) & (np.abs(dy) > 1e-6)
+    if np.any(diag_mask):
+        target_y = float(roi_h_orig)
+        x1 = lines[diag_mask, 0]
+        y1 = lines[diag_mask, 1]
+        x2 = lines[diag_mask, 2]
+        y2 = lines[diag_mask, 3]
+        inter_x = x1 + (target_y - y1) * (x2 - x1) / (y2 - y1)
+        valid = np.isfinite(inter_x)
+        for ix, ln in zip(inter_x[valid].tolist(), lengths[diag_mask][valid].tolist()):
+            ix = float(np.clip(ix, 0.0, float(w_orig) - 1.0))
+            b = min(7, max(0, int(ix / float(w_orig) * 8)))
+            perspective_density[b] += float(ln)
+        denom = float(np.sum(perspective_density))
+        if denom > 1e-12:
+            perspective_density /= denom
+
+    return LineFeatures(
+        lines=lines,
+        orientation_hist=orientation_hist,
+        spatial_hist=spatial_hist,
+        vertical_count=vertical_count,
+        horizontal_count=horizontal_count,
+        diagonal_count=diagonal_count,
+        total_length=total_length,
+        image_shape=original_shape,
+        zone_hists=zone_hists,
+        vertical_density=vertical_density,
+        parallel_profile=parallel_profile,
+        perspective_density=perspective_density,
+        roi_bottom_y=int(roi_h_orig),
+        zone_bounds_y=np.asarray(zone_bounds, dtype=np.int32),
+    )
+
+
+def _cos(a: np.ndarray, b: np.ndarray) -> float:
+    return float(np.dot(a, b)) / (
+        (float(np.linalg.norm(a)) + 1e-12) * (float(np.linalg.norm(b)) + 1e-12)
+    )
+
+
+def compute_line_similarity_breakdown(query: LineFeatures, ref: LineFeatures) -> dict:
+    """Count-robust first-stage line shortlist score breakdown."""
+    orient_sim = _cos(query.orientation_hist, ref.orientation_hist)
+    spatial_sim = _cos(query.spatial_hist, ref.spatial_hist)
+    zone_sims = [_cos(query.zone_hists[z], ref.zone_hists[z]) for z in range(3)]
+    zone_avg = float(np.mean(zone_sims))
+    parallel_sim = _cos(query.parallel_profile, ref.parallel_profile)
+    perspective_sim = _cos(query.perspective_density, ref.perspective_density)
+    q_total = max(1, query.vertical_count + query.horizontal_count + query.diagonal_count)
+    r_total = max(1, ref.vertical_count + ref.horizontal_count + ref.diagonal_count)
+    q_v = float(query.vertical_count) / q_total
+    r_v = float(ref.vertical_count) / r_total
+    q_h = float(query.horizontal_count) / q_total
+    r_h = float(ref.horizontal_count) / r_total
+    layout_sim = 1.0 - 0.5 * (abs(q_v - r_v) + abs(q_h - r_h))
+    final = float(np.clip(
+        0.24 * orient_sim
+        + 0.18 * parallel_sim
+        + 0.20 * spatial_sim
+        + 0.18 * zone_avg
+        + 0.20 * perspective_sim,
+        0.0,
+        1.0,
+    ))
+    return {
+        "direction_similarity": float(orient_sim),
+        "parallel_similarity": float(parallel_sim),
+        "spatial_similarity": float(spatial_sim),
+        "zone_similarity": float(zone_avg),
+        "perspective_similarity": float(perspective_sim),
+        "layout_similarity": float(layout_sim),
+        "line_similarity": final,
+    }
+
+
+def compute_line_similarity(query: LineFeatures, ref: LineFeatures) -> float:
+    return float(compute_line_similarity_breakdown(query, ref)["line_similarity"])
+
+
+def compute_structural_similarity(query: LineFeatures, ref: LineFeatures) -> float:
+    """Second-stage discriminative score to defeat corridor perceptual aliasing.
+
+    Uses zone-specific orientation histograms and vertical pillar density to
+    distinguish locations that share similar global line statistics.
+
+    Returns a score in [0, 1].
+    """
+    zone_a = _cos(query.zone_hists[0], ref.zone_hists[0])   # ceiling — most stable
+    zone_b = _cos(query.zone_hists[1], ref.zone_hists[1])   # ceiling-wall boundary + pillar tops
+    vdensity = _cos(query.vertical_density, ref.vertical_density)  # pillar horizontal positions
+    perspective = _cos(query.perspective_density, ref.perspective_density)
+    return float(np.clip(0.32 * zone_a + 0.24 * zone_b + 0.24 * vdensity + 0.20 * perspective, 0.0, 1.0))
+
+
+def draw_line_features(
+    bgr: np.ndarray,
+    lf: LineFeatures,
+    color: Tuple[int, int, int] = (0, 255, 0),
+    thickness: int = 2,
+) -> np.ndarray:
+    """Draw detected lines onto a BGR image copy."""
+    vis = bgr.copy()
+    for x1, y1, x2, y2 in lf.lines:
+        cv2.line(vis, (int(x1), int(y1)), (int(x2), int(y2)), color, thickness, cv2.LINE_AA)
+    return vis
 
 
 def draw_verified_matches(

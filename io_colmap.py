@@ -9,6 +9,7 @@ This module intentionally keeps IO boring and explicit:
 
 from __future__ import annotations
 
+import json
 import re
 import sqlite3
 import struct
@@ -34,6 +35,7 @@ CAMERA_MODEL_IDS = {
 }
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"}
+IGNORED_REFERENCE_STEMS = ("_depth", "_confidence", "_mask", "_seg")
 
 
 @dataclass
@@ -78,6 +80,7 @@ class ReferenceMeta:
     station_id: Optional[int]
     view_label: str
     logical_xy: np.ndarray
+    coord_source: str = "filename_inferred"
 
 
 def natural_sort_key(text: str):
@@ -105,7 +108,40 @@ def parse_station_and_view(image_name: str) -> Tuple[Optional[int], str]:
     return station_id, "front"
 
 
-def find_coords_path(project_dir: Path) -> Optional[Path]:
+def count_reference_images(ref_dir: Path) -> int:
+    return sum(1 for _ in iter_reference_images(ref_dir))
+
+
+def resolve_reference_dir(ref_dir: Path) -> Path:
+    """Pick a usable reference directory when the given root only contains subfolders."""
+    if count_reference_images(ref_dir) > 0:
+        return ref_dir
+    if not ref_dir.exists():
+        return ref_dir
+
+    candidates = []
+    for child in sorted([p for p in ref_dir.iterdir() if p.is_dir()], key=lambda p: natural_sort_key(p.name)):
+        image_count = count_reference_images(child)
+        if image_count <= 0:
+            continue
+        name = child.name.lower()
+        prepared = int("prepared" in name or "curated" in name or "clean" in name)
+        has_coords = int((child / "coords.txt").exists() or (child / "coords.text").exists())
+        has_pose = int((child / "trajectory.json").exists() or any(child.glob("*_pose.json")))
+        candidates.append(((prepared, has_coords, image_count, has_pose), child))
+
+    if not candidates:
+        return ref_dir
+    candidates.sort(key=lambda item: (item[0], natural_sort_key(item[1].name)), reverse=True)
+    return candidates[0][1]
+
+
+def find_coords_path(project_dir: Path, ref_dir: Optional[Path] = None) -> Optional[Path]:
+    if ref_dir is not None:
+        for name in ("coords.txt", "coords.text"):
+            path = ref_dir / name
+            if path.exists():
+                return path
     for name in ("coords.txt", "coords.text"):
         path = project_dir / name
         if path.exists():
@@ -137,6 +173,48 @@ def read_coords_file(path: Optional[Path]) -> Dict[str, np.ndarray]:
     return coords
 
 
+def _arkit_pose_to_floor_xy(values: np.ndarray) -> np.ndarray:
+    """Map ARKit row-major 4x4 transform to a simple floor-plane (x, z) point."""
+    flat = np.asarray(values, dtype=np.float64).reshape(-1)
+    if flat.size < 12:
+        raise ValueError("ARKit pose needs at least 12 values")
+    tx = float(flat[3])
+    tz = float(flat[11])
+    return np.array([tx, tz], dtype=np.float64)
+
+
+def read_arkit_pose_coords(ref_dir: Path) -> Dict[str, np.ndarray]:
+    """Read image_name -> logical (x, y) from ARKit trajectory or per-frame pose JSON."""
+    coords: Dict[str, np.ndarray] = {}
+    trajectory_path = ref_dir / "trajectory.json"
+    if trajectory_path.exists():
+        with trajectory_path.open("r", encoding="utf-8") as handle:
+            records = json.load(handle)
+        for record in records:
+            frame_id = str(record.get("frame_id", "")).strip()
+            pose = record.get("pose")
+            if not frame_id or pose is None:
+                continue
+            try:
+                coords[f"{frame_id}.jpg"] = _arkit_pose_to_floor_xy(np.asarray(pose, dtype=np.float64))
+            except (TypeError, ValueError):
+                continue
+        if coords:
+            return coords
+
+    for pose_path in sorted(ref_dir.glob("*_pose.json"), key=lambda p: natural_sort_key(p.name)):
+        with pose_path.open("r", encoding="utf-8") as handle:
+            record = json.load(handle)
+        pose = record.get("transform")
+        if pose is None:
+            continue
+        try:
+            coords[f"{pose_path.stem[:-5]}.jpg"] = _arkit_pose_to_floor_xy(np.asarray(pose, dtype=np.float64))
+        except (TypeError, ValueError):
+            continue
+    return coords
+
+
 def infer_logical_xy(image_name: str) -> np.ndarray:
     station_id, view = parse_station_and_view(image_name)
     y_offsets = {"left": -0.25, "front": 0.0, "right": 0.25, "back": 0.0}
@@ -149,23 +227,40 @@ def iter_reference_images(ref_dir: Path) -> Iterable[Path]:
     if not ref_dir.exists():
         return []
     return sorted(
-        [p for p in ref_dir.iterdir() if p.is_file() and p.suffix.lower() in IMAGE_EXTENSIONS],
+        [
+            p
+            for p in ref_dir.iterdir()
+            if p.is_file()
+            and p.suffix.lower() in IMAGE_EXTENSIONS
+            and not p.stem.lower().endswith(IGNORED_REFERENCE_STEMS)
+        ],
         key=lambda p: natural_sort_key(p.name),
     )
 
 
 def build_reference_metadata(ref_dir: Path, coords_path: Optional[Path]) -> Dict[str, ReferenceMeta]:
     coords = read_coords_file(coords_path)
+    pose_coords = {} if coords else read_arkit_pose_coords(ref_dir)
     metadata: Dict[str, ReferenceMeta] = {}
     for image_path in iter_reference_images(ref_dir):
         station_id, view_label = parse_station_and_view(image_path.name)
-        logical_xy = coords.get(image_path.name, infer_logical_xy(image_path.name))
+        coord_source = "filename_inferred"
+        logical_xy = coords.get(image_path.name)
+        if logical_xy is not None:
+            coord_source = "coords_file"
+        else:
+            logical_xy = pose_coords.get(image_path.name)
+            if logical_xy is not None:
+                coord_source = "arkit_pose"
+            else:
+                logical_xy = infer_logical_xy(image_path.name)
         metadata[image_path.name] = ReferenceMeta(
             image_name=image_path.name,
             image_path=image_path,
             station_id=station_id,
             view_label=view_label,
             logical_xy=np.asarray(logical_xy, dtype=np.float64),
+            coord_source=coord_source,
         )
     return metadata
 

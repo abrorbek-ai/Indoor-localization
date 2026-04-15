@@ -21,3 +21,8 @@ pose_plot.png
 query_best_match.png
 query_reference_overlay.png
 reference_camera_centers.txt
+
+ref_images/dataset-*/**/*_depth.bin
+ref_images/dataset-*/**/*_depth.png
+ref_images/dataset-*/**/*_depth_meta.json
+ref_images/dataset-*/**/*_confidence.png
