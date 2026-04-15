@@ -1,5 +1,12 @@
 # Indoor Localization MVP
 
+<p align="left">
+  <img src="https://img.shields.io/badge/status-MVP-orange" alt="status">
+  <img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="python">
+  <img src="https://img.shields.io/badge/opencv-line%20%2B%20sift-success" alt="opencv">
+  <img src="https://img.shields.io/badge/localization-structure--first-purple" alt="structure first">
+</p>
+
 Indoor corridor-style image localization prototype built around stable structural cues instead of color-heavy matching.
 
 This project is designed for practical indoor re-localization where wall paint, lighting, furniture, and temporary clutter may change over time, but the corridor geometry usually stays similar:
@@ -11,6 +18,36 @@ This project is designed for practical indoor re-localization where wall paint, 
 - upper-wall layout
 
 The current system uses a line-first retrieval stage and a stronger second-stage verification step so that "more lines" does not automatically mean "better match".
+
+## Highlights
+
+- structure-first retrieval instead of color-heavy matching
+- floor suppression to avoid brick-pattern bias
+- line shortlist plus second-stage structural verification
+- optional PnP fallback path
+- local web UI for upload-based inspection
+- debug-friendly outputs for why a wrong candidate was rejected
+
+## TL;DR
+
+If you just want to run it:
+
+```bash
+.venv/bin/python run.py \
+  --ref-dir "ref_images/dataset-20260410-142733-2_prepared" \
+  --query "query/test.jpg" \
+  --no-pnp
+```
+
+If you want the upload UI:
+
+```bash
+.venv/bin/python server.py \
+  --ref-dir "ref_images/dataset-20260410-142733-2_prepared" \
+  --no-pnp
+```
+
+Then open `http://127.0.0.1:5000`.
 
 ## What It Does
 
@@ -128,6 +165,14 @@ Typical dependencies used by this project:
 
 If you already have a working `.venv`, you can keep using it.
 
+Example:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install opencv-python numpy matplotlib flask
+```
+
 ## Quick Start
 
 ### 1. Run with default query
@@ -154,6 +199,33 @@ If `ref_images/` itself does not contain images, the pipeline automatically trie
   --ref-dir "ref_images/corridor" \
   --coords "coords.txt"
 ```
+
+## Typical Workflow
+
+1. prepare a reference folder
+2. put the test image into `query/` or pass `--query`
+3. run CLI or web mode
+4. inspect summary + visual outputs
+5. compare top candidates in the HTML report
+
+## Demo Outputs
+
+After a successful run, these are the most useful files:
+
+| File | Purpose |
+| --- | --- |
+| `localization_summary.txt` | full ranking, shortlist, score breakdown, rejection reasons |
+| `query_line_viz.png` | query ROI + detected structural lines + top shortlist references |
+| `query_best_match.png` | verified local feature matches between query and final top-1 |
+| `pose_plot.png` | logical station / map view |
+| `colmap_pose_view.html` | interactive report with map and candidate inspection |
+
+Recommended order:
+
+1. open `localization_summary.txt`
+2. open `query_line_viz.png`
+3. open `query_best_match.png`
+4. open `colmap_pose_view.html`
 
 ## Web Usage
 
@@ -185,6 +257,20 @@ The web view includes:
 - top candidates
 - hover tooltip with scores
 - double-click image modal on map points
+
+### Web page sections
+
+The richer HTML / server view is organized into:
+
+1. line features visualization
+2. interactive location map
+3. top candidates
+
+This makes it easier to answer:
+
+- what was shortlisted first
+- why the final frame won
+- which similar frames were rejected
 
 ## Preparing ARKit References
 
@@ -225,6 +311,16 @@ Running the pipeline produces:
 - score breakdown
 - rejection reasons for similar but wrong candidates
 
+### Debug details included now
+
+- selected ROI height
+- ignored floor fraction
+- filtered line count
+- first-stage line shortlist
+- structural similarity
+- final weighted score breakdown
+- why similar wrong candidates were rejected
+
 ## Current Scoring Logic
 
 ### First-stage shortlist
@@ -260,6 +356,17 @@ For best results:
 5. inspect `query_line_viz.png` and `query_best_match.png`
 6. use the HTML page to compare top candidates visually
 
+## Repository Notes
+
+This repo currently focuses on a practical indoor localization prototype rather than a polished product package.
+
+That means:
+
+- the code is organized for iteration and debugging
+- generated outputs are intentionally kept out of Git
+- datasets are not bundled into the repository
+- the main value is in the pipeline logic and inspection tools
+
 ## Limitations
 
 This is still an MVP, so some things are intentionally scoped:
@@ -277,6 +384,16 @@ This is still an MVP, so some things are intentionally scoped:
 - improve README examples for your exact dataset
 - add unit tests for scoring and candidate rejection
 - add a small sample dataset config file
+
+## Suggested Public Repo Polish
+
+If you want this repository to feel cleaner to outside visitors, the next easy upgrades are:
+
+- add 2-3 screenshots into a `docs/` folder
+- add a tiny sample reference set
+- add a short demo GIF of the web page
+- add a license file
+- add an example `requirements.txt`
 
 ## Branch / Development Notes
 
